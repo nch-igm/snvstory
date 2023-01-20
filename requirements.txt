@@ -1,0 +1,12 @@
+numpy==1.18.1
+pandas==1.0.1
+xgboost==1.0.2
+umap-learn==0.4.2
+scikit-learn==0.24.1
+scipy==1.4.1
+matplotlib==3.2.1
+bokeh==2.4.3
+#igm-ctk==1.1.0
+botocore==1.21.49
+boto3==1.18.49
+awscli==1.20.49

@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  ancestry:
+    build:
+      context: .
+      args: 
+        CODEARTIFACT_AUTH_TOKEN: $CODEARTIFACT_AUTH_TOKEN
+    image: igm/churchill-ancestry:latest
+    # mount volumes for local development
+    volumes:
+      - "./dev/data:/data"
+      - "~/.aws:/root/.aws"
