@@ -1,5 +1,5 @@
 # SNVstory
-Rapid and accurate ancestry inference using SNVs.
+Rapid and accurate ancestry inference using single nucleotide variants.
 
 
 ## Installation
