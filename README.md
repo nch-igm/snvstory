@@ -29,7 +29,7 @@ E.g., in the following example case the gnomAD continental probability for the '
 
 
 ### UMAP
-SNVstory also outputs a UMAP transformation of the user input sample on each set of continental model features. The interactive plots are saved to .html files (see ./assets). A hover tool is used to display the country and population of nearby training samples.
+SNVstory also outputs a UMAP transformation of the user input sample (in black) on each set of training samples (color labeled by continent). The interactive plots are saved to .html files (see ./assets). A hover tool is used to display the country and population of nearby training samples.
 
 ![Example Report](assets/Example_SGDP_umap.png)
 
