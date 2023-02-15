@@ -28,6 +28,12 @@ E.g., in the following example case the gnomAD continental probability for the '
 ![Example Report](assets/ExampleAncestryReport.svg)
 
 
+### UMAP
+SNVstory also outputs a UMAP transformation of the user input sample on each set of continental model features.
+
+{% include assets/Example_gnomAD_umap.html %}
+
+
 ## Execution
 
 ```bash
