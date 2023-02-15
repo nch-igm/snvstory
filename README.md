@@ -17,6 +17,17 @@ Copy the resources into a location the container can find. This step will take s
 aws s3 sync s3://path-to-directory dev/data/resource_dir/
 ```
 
+## Output
+
+### Ancestry Report
+SNVstory returns a .csv report which includes the probabilities of each label. A .pdf is also returned, which summarizes these model probabilities in dot plots. The subcontinental model probabilities are weighted by the corresponding continental model result. 
+
+E.g., in the following example case the gnomAD continental probability for the 'eas' label is 0, so the gnomAD East Asian subcontinental model probabilities are multiplied by 0 in the dot plot.
+
+
+![Example Report](assets/ExampleAncestryReport.svg)
+
+
 ## Execution
 
 ```bash
