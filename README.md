@@ -1,10 +1,13 @@
 # SNVstory
 Rapid and accurate ancestry inference using single nucleotide variants.
 
-
-## Installation
+## Dependencies
 
 SNVstory requires Docker to run. Download and install [Docker Desktop](https://docs.docker.com/get-docker/).
+
+You will also need the AWS Command Line Interface to download the resources needed to run the models. Please follow the installation instructions for [AWS CLI Version 2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+
+## Installation
 
 Build SNVstory.
 ```bash
@@ -15,6 +18,35 @@ docker-compose build
 Copy the resources into a location the container can find. This step will take some time, but only needs to be copied once.
 ```bash
 aws s3 sync s3://igm-public-dropbox/snvstory/resource_dir/ dev/data/resource_dir/
+```
+
+## Execution
+
+SNVstory is executed with Docker by running the follow:
+```bash
+docker-compose run ancestry <arguments>
+```
+
+Run 
+
+Example run with VCF on s3.
+```bash
+docker-compose run ancestry \
+    --path s3://path-to-input-file \
+    --resource "/data/resource_dir" \
+    --output-dir s3://path-to-output-directory \
+    --genome-ver 38 \
+    --mode WES
+```
+
+Example run with VCF on local computer. Make sure both input and output files are location in the ```/data/``` directory so that the Docker container can find them.
+```bash
+docker-compose run ancestry \
+    --path "/data/path-to-input-file" \
+    --resource "/data/resource_dir" \
+    --output-dir "/data/path-to-output-directory" \
+    --genome-ver 38 \
+    --mode WES
 ```
 
 ## Output
@@ -34,31 +66,7 @@ SNVstory also outputs a UMAP transformation of the user input sample (in black) 
 ![Example Report](assets/Example_1kGP_umap.png)
 
 
-## Execution
 
-```bash
-docker-compose run ancestry <arguments>
-```
-
-Example run with VCF on s3.
-```bash
-docker-compose run ancestry \
-    --path s3://path-to-input-file \
-    --resource "/data/resource_dir" \
-    --output-dir s3://path-to-output-directory \
-    --genome-ver 38 \
-    --mode WES
-```
-
-Example run with VCF on local computer.
-```bash
-docker-compose run ancestry \
-    --path "/data/path-to-input-file" \
-    --resource "/data/resource_dir" \
-    --output-dir "/data/path-to-output-directory" \
-    --genome-ver 38 \
-    --mode WES
-```
 
 
 
