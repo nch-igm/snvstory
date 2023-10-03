@@ -20,8 +20,7 @@ RUN conda install -y \
 ARG SERVICE_NAME=Ancestry
 WORKDIR /opt/${SERVICE_NAME}
 COPY ./requirements.txt ./
-ARG CODEARTIFACT_AUTH_TOKEN
-RUN pip install -r requirements.txt --extra-index-url https://aws:$CODEARTIFACT_AUTH_TOKEN@igm-257995316808.d.codeartifact.us-east-2.amazonaws.com/pypi/igm-pypi-store/simple/
+RUN pip install -r requirements.txt
 RUN rm requirements.txt
 
 # copy source code
