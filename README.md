@@ -22,10 +22,11 @@ aws s3 sync s3://igm-public-dropbox/snvstory/resource_dir/ dev/data/resource_dir
 
 ## Execution
 
-SNVstory is executed with Docker by running the following:
+SNVstory is executed with Docker by running the following on the terminal. Make sure Docker Destop is running or this command will not work.
 ```bash
 docker-compose run ancestry <arguments>
 ```
+
 
 Run to see all possible arguments:
 ```bash
