@@ -1,6 +1,24 @@
 # SNVstory
 Rapid and accurate ancestry inference using single nucleotide variants.
 
+## Citation
+
+If you use SNVstory in your research, please consider citing our paper:
+
+@article{SNVstory: inferring genetic ancestry from genome sequencing data,
+  title={Rapid and accurate ancestry inference using single nucleotide variants},
+  author={Audrey E. Bollas, Andrei Rajkovic, Defne Ceyhan, Jeffrey B. Gaither, Elaine R. Mardis & Peter White},
+  journal={BMC Bioinformatics},
+  volume={25},
+  number={1},
+  pages={123},
+  year={2024},
+  publisher={BioMed Central},
+  doi={10.1186/s12859-024-05703-y},
+  url={https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05703-y}
+}
+
+
 ## Dependencies
 
 SNVstory requires Docker to run. Download and install [Docker Desktop](https://docs.docker.com/get-docker/).
