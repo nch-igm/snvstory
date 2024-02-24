@@ -1,6 +1,12 @@
 # SNVstory
 Rapid and accurate ancestry inference using single nucleotide variants.
 
+## Citation
+
+If you use SNVstory in your research, please consider citing our paper:
+https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-024-05703-y
+
+
 ## Dependencies
 
 SNVstory requires Docker to run. Download and install [Docker Desktop](https://docs.docker.com/get-docker/).
