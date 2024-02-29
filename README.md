@@ -23,7 +23,7 @@ docker-compose build
 
 Copy the resources into a location the container can find. This step will take some time, but only needs to be copied once.
 ```bash
-aws s3 sync s3://igm-public-dropbox/snvstory/resource_dir/ dev/data/resource_dir/
+aws s3 sync s3://igm-public-dropbox/snvstory/resource_dir/ dev/data/resource_dir/ --no-sign-request
 ```
 
 ## Execution
