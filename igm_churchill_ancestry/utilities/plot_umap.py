@@ -1,11 +1,6 @@
-import sys, os
-from igm_churchill_ancestry.pipelines.variables import variables
+import os
 import pandas as pd
-import numpy as np
 import pickle
-from scipy import sparse
-from sklearn.decomposition import TruncatedSVD
-import umap
 import glob
 
 from bokeh.plotting import figure, output_file, save
