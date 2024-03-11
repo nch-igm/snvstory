@@ -6,10 +6,9 @@ import argparse
 import concurrent.futures
 
 from igm_churchill_ancestry.pipelines.variables import variables
-#from igm_ctk import flex_input, flex_output
-from .utilities.flex import flex_input, flex_output
-from .pipelines.ancestry_prediction import run_ancestry_pipeline
-from .utilities.utilities import get_extension, filter_extension, is_vcf_multisample, check_resources
+from igm_churchill_ancestry.utilities.flex import flex_input, flex_output
+from igm_churchill_ancestry.pipelines.ancestry_prediction import run_ancestry_pipeline
+from igm_churchill_ancestry.utilities.utilities import get_extension, filter_extension, is_vcf_multisample, check_resources
 
 
 
