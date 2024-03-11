@@ -3,7 +3,7 @@ import shutil
 import hashlib
 import logging
 
-from .s3 import (upload_s3_file, upload_s3_directory,
+from igm_churchill_ancestry.utilities.s3 import (upload_s3_file, upload_s3_directory,
                  download_s3_file, download_s3_directory)
 
 
