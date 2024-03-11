@@ -6,6 +6,31 @@ import pandas as pd
 from scipy import sparse
 
 
+def load_snp_order(attribute_dir):
+    """
+    A function to read in the order of the SNPs
+    as they were used in the generation of the
+    gradient boosted decision tree model. This
+    is critical in order to feed the model
+    the correct input data. Any change in order
+    will create a conflict and either cause xgb
+    to fail or incorrect predictions will be
+    generated.
+    """
+
+    ordered_snps_path = glob.glob(attribute_dir + '/*.txt')[0]
+    o_snps = []
+    try:
+        with open(ordered_snps_path, 'r') as fin:
+            for line in fin:
+                line = line.strip()
+                o_snps.append(line)
+        return o_snps
+    except Exception as e:
+        print(f'File path probably incorrect {ordered_snps_path}. {e}')
+        return
+
+
 def vcf_to_json(parsed_vcf, attribute_dir, locus_converter_json_path):
     """
     Transforms genotypes from VCF into numeric representation and
