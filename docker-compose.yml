@@ -3,7 +3,7 @@ services:
   ancestry:
     build:
       context: .
-    image: igm/churchill-ancestry:latest
+    image: igm/churchill-ancestry:3.0.1
     # mount volumes for local development
     volumes:
       - "./dev/data:/data"

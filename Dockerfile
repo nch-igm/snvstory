@@ -2,7 +2,7 @@ FROM continuumio/miniconda3:4.8.2
 
 LABEL container.base.image="continuumio/miniconda3:4.8.2" \
       software.name="IGM Churchill Ancestry" \
-      software.version="3.0.0"
+      software.version="3.0.1"
 
 # install system requirements so these can potentially be cached
 ENV NUMBA_VERSION="0.48" PATH="/opt/conda/bin:$PATH"
