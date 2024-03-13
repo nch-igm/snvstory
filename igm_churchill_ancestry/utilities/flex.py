@@ -115,7 +115,7 @@ def flex_output(in_path: str, out_dir: str = None,
     if not out_dir:
         out_dir = "."
     if not file_rename:
-        file_rename = os.path.basename(in_path)
+        file_rename = os.path.basename(in_path.rstrip('/'))
     out_path = os.path.join(out_dir, file_rename)
     if in_path == out_path:
         print("Source and destination are the same. No copy needed.")
