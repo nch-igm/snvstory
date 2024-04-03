@@ -100,10 +100,10 @@ usage: Feature_importance.py [-h] [-b] [-s] [-i] vcf output resource_dir {hg19,h
 Calculate feature importance aggregated to genes and cytolocations. Returns two .npz files with shap values. Optionally create summary plots.
 
 positional arguments:
-  vcf                   Path to input VCF file (gzipped).
+  vcf                   Path to input VCF file.
   output                Output folder to write results. Will exit if folder exists.
   resource_dir          Path to resource directory.
-  {hg19,hg38}           Genome version (hg19 or hg38).
+  {hg19,hg38}           Genome version (hg19 or hg38) of input vcf.
 
 optional arguments:
   -h, --help            show this help message and exit
