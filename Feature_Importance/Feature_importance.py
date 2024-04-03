@@ -155,10 +155,10 @@ def write_npz(shap_values, sample_list, var_ids, label_dict, output_path):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Calculate feature importance aggregated to genes and cytolocations. Returns two .npz files with shap values. Optionally create summary plots.')
-    parser.add_argument('vcf', type=str, help='Path to input VCF file (gzipped).')
+    parser.add_argument('vcf', type=str, help='Path to input VCF file.')
     parser.add_argument('output', type=str, help='Output folder to write results. Will exit if folder exists.')
     parser.add_argument('resource_dir', type=str, help='Path to resource directory.')
-    parser.add_argument('genome_ver', type=str, choices=['hg19', 'hg38'], help='Genome version (hg19 or hg38).')
+    parser.add_argument('genome_ver', type=str, choices=['hg19', 'hg38'], help='Genome version (hg19 or hg38) of input vcf.')
     parser.add_argument('-b', '--bar-plot', action='store_true', help='Flag to indicate whether to create mean(|SHAP val|) bar plot. All samples in the VCF are aggregated together.')
     parser.add_argument('-s', '--stacked-bar-plot', action='store_true', help='Flag to indicate whether to create stacked bar plot. All samples in the VCF are aggregated together.')
     parser.add_argument('-i', '--ideogram-plot', action='store_true', help='Flag to indicate whether to create mean(|SHAP val|) bar plot. This will create a separate plot for each sample in the VCF.')
