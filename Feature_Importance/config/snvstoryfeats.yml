@@ -1,0 +1,17 @@
+name: snvstoryfeats
+channels:
+- bioconda
+- conda-forge
+- pkgs/main
+dependencies:
+- matplotlib=3.8.3
+- numba=0.59.1
+- numpy=1.22.4
+- pandas=1.2.4
+- python=3.9.19
+- scikit-learn=1.4.1
+- scipy=1.12.0
+- seaborn=0.13.2
+- shap=0.39.0
+- xgboost=1.4.0
+- ipython

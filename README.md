@@ -77,6 +77,61 @@ SNVstory also outputs a UMAP transformation of the user input sample (in black) 
 
 
 
+## Feature Importance
+
+The feature importance anaysis is executed separately, and requires micromamba/conda for installation.
+
+### Installation
+
+```bash
+cd Feature_Importance
+micromamba create -f config/snvstoryfeats.yml
+micromamba activate snvstoryfeats
+```
+
+### Execution
+
+Feature importance requires your single/multi-sample VCF as input and will run on all samples in the VCF.
+
+```bash
+(snvstoryfeats)$ python Feature_importance.py --help
+usage: Feature_importance.py [-h] [-b] [-s] [-i] vcf output resource_dir {hg19,hg38}
+
+Calculate feature importance aggregated to genes and cytolocations. Returns two .npz files with shap values. Optionally create summary plots.
+
+positional arguments:
+  vcf                   Path to input VCF file (gzipped).
+  output                Output folder to write results. Will exit if folder exists.
+  resource_dir          Path to resource directory.
+  {hg19,hg38}           Genome version (hg19 or hg38).
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -b, --bar-plot        Flag to indicate whether to create mean(|SHAP val|) bar plot. All samples in the VCF are aggregated together.
+  -s, --stacked-bar-plot
+                        Flag to indicate whether to create stacked bar plot. All samples in the VCF are aggregated together.
+  -i, --ideogram-plot   Flag to indicate whether to create mean(|SHAP val|) bar plot. This will create a separate plot for each sample in the VCF.
+
+```
+
+Run the following example with the single sample VCF in the resources directory.
+
+```bash
+python Feature_importance.py ../dev/data/resource_dir/feature_importance/HG00096.example.vcf.gz test_output/ ../dev/data/resource_dir/ hg38 -b -s -i
+```
+
+The following samples should be created in the output directory:
+```
+test_output/
+├── HG00096_ideogram.png
+├── Top_20_genes.png
+├── Top_20_genes_stacked_label.png
+├── shap_cyto.npz
+└── shap_gene.npz
+```
+
+See ```assets/``` for the .png results.
+
 
 
 
