@@ -194,7 +194,7 @@ def main():
     
     if args.stacked_bar_plot:
         shap_genes_abs = get_shap_abs(shap_gene)
-        shape_genes_mean = get_shap_abs_mean(shap_genes_abs)
+        shap_genes_mean = get_shap_abs_mean(shap_genes_abs)
         stacked_bar_plot(shap_genes_abs, shap_genes_mean, gene_ids, 20, label_dict, f'{args.output}/Top_20_genes_stacked_label.png')
     
     if args.ideogram_plot:
