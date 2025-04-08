@@ -4,6 +4,7 @@ import numpy as np
 import logging
 import string
 import os
+import re
 import sys
 log = logging.getLogger(__name__)
 np.random.seed(0)  # guaranteed to have at least 10000 unique filecodes
@@ -43,26 +44,31 @@ def filter_extension(path):
 
 def get_extension(path):
     """
-    check for files that only end with
-    approved extension and return
-    the extension.
+    Check if a path ends with an approved extension and return it.
 
-    args
-    ----
-    path - path to vcf type  /path/to/sample.vcf (str)
+    Parameters
+    ----------
+    path : str
+        Path to a file, e.g. /path/to/sample.vcf
 
-    returns
+    Returns
     -------
-    ext - returns the matched extension (str)
-          or signals that the path is a directory
-
+    str
+        The matched extension or 'dir' if path is a directory or no match is found.
     """
-    extensions = [x for x in variables.EXTENSIONS if path.endswith(x)]
-    if len(extensions) == 1:
-        return extensions[0]
-    else:
-        log.debug(f"{path} matches multiple or no extensions {variables.EXTENSIONS}. Assuming directory")
+    if os.path.isdir(path):
         return 'dir'
+
+    basename = os.path.basename(path)
+
+    # Match the longest valid extension first
+    for ext in sorted(variables.EXTENSIONS, key=len, reverse=True):
+        pattern = re.escape(ext) + r'$'
+        if re.search(pattern, basename):
+            return ext
+
+    log.debug(f"{path} matches no known extension in {variables.EXTENSIONS}. Assuming directory.")
+    return 'dir'
 
 
 def random_file_code():
