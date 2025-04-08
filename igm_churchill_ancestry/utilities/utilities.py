@@ -4,6 +4,7 @@ import numpy as np
 import logging
 import string
 import os
+import re
 import sys
 log = logging.getLogger(__name__)
 np.random.seed(0)  # guaranteed to have at least 10000 unique filecodes
@@ -43,57 +44,30 @@ def filter_extension(path):
 
 def get_extension(path):
     """
-    check for files that only end with
-    approved extension and return
-    the extension.
+    Check if a path ends with an approved extension and return it.
 
-    args
-    ----
-    path - path to vcf type  /path/to/sample.vcf (str)
+    Parameters
+    ----------
+    path : str
+        Path to a file, e.g. /path/to/sample.vcf
 
-    returns
+    Returns
     -------
-    ext - returns the matched extension (str)
-          or signals that the path is a directory
+    str
+        The matched extension or 'dir' if path is a directory or no match is found.
     """
-    # Check if path is an existing directory
     if os.path.isdir(path):
         return 'dir'
 
-    # Get the basename of the path
     basename = os.path.basename(path)
 
-    # First try exact suffix matching
-    extensions = [x for x in variables.EXTENSIONS if path.endswith(x)]
-    if len(extensions) == 1:
-        return extensions[0]
+    # Match the longest valid extension first
+    for ext in sorted(variables.EXTENSIONS, key=len, reverse=True):
+        pattern = re.escape(ext) + r'$'
+        if re.search(pattern, basename):
+            return ext
 
-    # If no match, try more flexible matching for compound extensions
-    for ext in variables.EXTENSIONS:
-        # For extensions with multiple parts (like .g.vcf.gz)
-        if '.' in ext[1:]:  # Skip the first dot
-            parts = ext.split('.')
-            # Check if all parts appear in the filename in the right order
-            found = True
-            remaining = basename
-            for part in parts[1:]:  # Skip the empty string before first dot
-                if part not in remaining:
-                    found = False
-                    break
-                remaining = remaining[remaining.index(part) + len(part):]
-
-            if found:
-                return ext
-
-    # If still no match, check if it's an existing file
-    if os.path.isfile(path):
-        # Try to find the closest match to an approved extension
-        for ext in variables.EXTENSIONS:
-            if basename.endswith(ext.split('.')[-1]):  # Match just the final extension part
-                return ext
-
-    # If all else fails, assume it's a directory
-    log.debug(f"{path} matches multiple or no extensions {variables.EXTENSIONS}. Assuming directory")
+    log.debug(f"{path} matches no known extension in {variables.EXTENSIONS}. Assuming directory.")
     return 'dir'
 
 
