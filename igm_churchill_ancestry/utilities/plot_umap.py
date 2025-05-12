@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 import pickle
 import glob
 
@@ -42,9 +43,16 @@ def load_plot_attr(att_dir):
         print(f'Cannot load umap plot attributes: {e}')
         return
 
-def transform_input(s_matrix, pca, umap):
+def transform_input(s_matrix, pca, umap, sample_name, outdir):
     xsvd = pca.transform(s_matrix)
     embedding = umap.transform(xsvd)
+
+    # Save the PCA and UMAP coordinates
+    # try:
+    #     np.savetxt(os.path.join(outdir, f'{sample_name[0]}_pca.txt'), xsvd)
+    #     np.savetxt(os.path.join(outdir, f'{sample_name[0]}_umap.txt'), embedding)
+    # except Exception as e:
+    #     print("Error saving files:", e)
     return(embedding)
 
 
@@ -121,6 +129,24 @@ def bokeh_1kgp(embedding, plot_attr, sample_name, outdir):
     output_file(os.path.join(outdir, f'{sample_name[0]}_1kGP_umap.html'))
     save(p)
 
+def source_data_1kgp(embedding, plot_attr, sample_name, outdir):
+
+    ref_df = plot_attr[['Population name', 'Continent', 'x', 'y']].copy()
+
+    # Save user sample coordinates
+    user_df = pd.DataFrame({
+        'Population name': ['Query Sample'],
+        'Continent': ['Query Sample'],
+        'x': [embedding[0, 0]],
+        'y': [embedding[0, 1]]
+    }, index=[sample_name[0]])
+
+    # concatentate the two dataframes
+    df = pd.concat([user_df, ref_df], axis=0)
+
+    df.to_csv(os.path.join(outdir, f'{sample_name[0]}_umap_sample_coords.csv'))  
+
+
 
 def bokeh_sgdp(embedding, plot_attr, sample_name, outdir):
     # Hover labels
@@ -165,13 +191,14 @@ def bokeh_sgdp(embedding, plot_attr, sample_name, outdir):
 def plot_umap_parser(s_matrix, ml_dir, att_dir, sample_name, outdir, m_type):
     pca = load_pca(ml_dir)
     umap = load_umap(ml_dir)
-    embedding = transform_input(s_matrix, pca, umap)
+    embedding = transform_input(s_matrix, pca, umap, sample_name, outdir)
     plot_attr = load_plot_attr(att_dir)
 
     if m_type == 'gnomAD_continental':
         bokeh_gnomad(embedding, plot_attr, sample_name, outdir)
     elif m_type == '1kGP_continental':
         bokeh_1kgp(embedding, plot_attr, sample_name, outdir)
+        source_data_1kgp(embedding, plot_attr, sample_name, outdir)
     elif m_type == 'SGDP_continental':
         bokeh_sgdp(embedding, plot_attr, sample_name, outdir)
 
