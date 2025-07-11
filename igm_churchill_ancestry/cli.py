@@ -6,7 +6,7 @@ import argparse
 import concurrent.futures
 
 from igm_churchill_ancestry.pipelines.variables import variables
-from igm_churchill_ancestry.utilities.flex import flex_input, flex_output
+from igm_churchill_ancestry.utilities.flex import flex_input, flex_output, get_dir_size
 from igm_churchill_ancestry.pipelines.ancestry_prediction import run_ancestry_pipeline
 from igm_churchill_ancestry.utilities.utilities import get_extension, filter_extension, is_vcf_multisample, check_resources
 
@@ -111,7 +111,6 @@ def run_ancestry():
     local_vcf_dir = ''
 
     if file_extz != 'dir':
-        # Attempt to download single input from s3
         try:
             local_vcf_file = flex_input(args.path)
             logging.debug(f"Input VCF success. File size: {os.path.getsize(local_vcf_file)}")
@@ -120,11 +119,10 @@ def run_ancestry():
             logging.debug(f"Input file: {args.path} does not appear to be local or s3 input.")
             print(f"Input file: {args.path} does not appear to be local or s3 input.")
     else:
-        # Attempt to download directory from s3
         try:
             local_vcf_dir = flex_input(args.path, INPUT_DIR, directory=True)
-            logging.debug(f"Input VCF directory success. Directory size: {os.path.getsize(INPUT_DIR)}") # this doesn't give the size of the files in directory rn
-            print(f"Input VCF directory success. Directory size: {os.path.getsize(INPUT_DIR)}")
+            logging.debug(f"Input VCF directory success. Directory size: {get_dir_size(args.path)}")
+            print(f"Input VCF directory success. Directory size: {get_dir_size(args.path)}")
         except Exception:
             logging.debug(f"Directory: {args.path} does not appear to be local or an s3 input")
             print(f"Directory: {args.path} does not appear to be local or an s3 input")
@@ -141,10 +139,9 @@ def run_ancestry():
     var = variables(RSRC_DIR)
     check_resources(var)
 
-    # Determine if the file is multi-sampled or single
     if local_vcf_dir:
         print(f'Expected input: {args.path} is a directory')
-        local_vcf_dir = [os.path.join(INPUT_DIR, x) for x in os.listdir(local_vcf_dir)]
+        local_vcf_dir = [os.path.join(local_vcf_dir, x) for x in os.listdir(local_vcf_dir)]
         local_vcf_dir = filter_extension(local_vcf_dir)
         if len(args.sp) != len(local_vcf_dir):
             if args.sp != 'all':
@@ -152,16 +149,24 @@ def run_ancestry():
             sp = ['all'] * len(local_vcf_dir)
         else:
             sp = args.sp
+
+        # Checking if mode is provided for each VCF
+        if len(args.mode) == 1 and len(local_vcf_dir) > 1:
+            args.mode = args.mode * len(local_vcf_dir)
+        if len(args.mode) != len(local_vcf_dir):
+            raise ValueError(f"Number of --mode values ({len(args.mode)}) must match number of input VCFs ({len(local_vcf_dir)})")
+
         for i, f in enumerate(local_vcf_dir):
+            print(f'Processing file: {f}')
             multi_sample_status, sample_name = is_vcf_multisample(f, True)
+            print(f'Multisample: {multi_sample_status} and sample name(s): {sample_name}')
             if args.output_filename is None:
                 ofn = f"{os.path.splitext(f)[0].split('/')[-1]}_{sample_name[0]}.csv"
             else:
                 ofn = args.output_filename
-            print(f'Multisample: {multi_sample_status} and sample name: {sample_name}')
 
             run_ancestry_pipeline(vcf_path=f, multi_sample_status=multi_sample_status,
-                                  sample=sample_name, sample_position=sp, var=var,
+                                  sample=sample_name, sample_position=sp[i], var=var,
                                   outdir=OUT_DIR, genome_ver=args.genome_ver, mode=args.mode[i],
                                   ofn=ofn)
         flex_output(OUT_DIR, args.output_dir)
@@ -169,14 +174,14 @@ def run_ancestry():
     elif local_vcf_file:
         print(f'Expected input: {local_vcf_file} is a file')
         multi_sample_status, sample_name = is_vcf_multisample(local_vcf_file, True)
-        print(f'Multisample: {multi_sample_status} and sample name: {sample_name[0]}')
+        print(f'Multisample: {multi_sample_status} and sample name(s): {sample_name}')
         if args.output_filename is None:
             ofn = f"{os.path.splitext(local_vcf_file)[0].split('/')[-1]}_{sample_name[0]}.csv"
         else:
             ofn = args.output_filename
 
         run_ancestry_pipeline(vcf_path=local_vcf_file, multi_sample_status=multi_sample_status,
-                              sample=sample_name, sample_position=args.sp, var=var,
+                              sample=sample_name, sample_position=args.sp[0], var=var,
                               outdir=OUT_DIR, genome_ver=args.genome_ver, mode=args.mode[0],
                               ofn=ofn)
         flex_output(OUT_DIR, args.output_dir)
