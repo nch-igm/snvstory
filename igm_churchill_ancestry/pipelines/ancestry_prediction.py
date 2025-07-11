@@ -121,7 +121,9 @@ def run_ancestry_pipeline(vcf_path, multi_sample_status, sample, sample_position
         DATA_TO_PLOT_LIST = []
         if sample_position == 'all':
             samples, sample_names = parse_multisample_vcf_sample(o, gz_file, sample_position)
-            for s in samples:
+            for s, sample_name in zip(samples, sample_names):
+                print(f'Processing sample: {sample_name}')
+                print('Getting model predictions:')
                 DATA_TO_PLOT = {}
                 p_mvcf = parse_multisample_vcf(o, gz_file, s)
                 for att_dir, ml_dir, n_classes, m_type in var.R_DIRS:
@@ -141,11 +143,16 @@ def run_ancestry_pipeline(vcf_path, multi_sample_status, sample, sample_position
         else:
             # User chosen sample(s); if handpicked should be comma separated.
             sample_position_s = sample_position.split(',')
+            sample_names = []
             for s in sample_position_s:
+                sample, sample_name = parse_multisample_vcf_sample(o, gz_file, s)
+                sample_names.append(sample_name)
+                print(f'Processing sample: {sample_name}')
+                print('Getting model predictions:')
                 DATA_TO_PLOT = {}
-                sample, sample_names = parse_multisample_vcf_sample(o, gz_file, s)
                 p_mvcf = parse_multisample_vcf(o, gz_file, sample)
                 for att_dir, ml_dir, n_classes, m_type in var.R_DIRS:
+                    print(m_type)
                     t = m_type.split('_')[0]
                     # Make the vcf ml compatible
                     t_vcf_json = vcf_to_json(parsed_vcf=p_mvcf, attribute_dir=att_dir, locus_converter_json_path=var.JSON_CONVERTS[genome_ver][mode][t])
