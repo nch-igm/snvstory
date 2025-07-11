@@ -1,2 +1,4 @@
 dev/
 .DS_Store
+
+run_ancestry.sh
