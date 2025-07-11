@@ -18,6 +18,13 @@ def _s3_parent_name_md5sum(in_path: str) -> str:
     # https://stackoverflow.com/questions/5297448/
     return hashlib.md5(parent.encode('utf-8')).hexdigest()
 
+def get_dir_size(path):
+    total = 0
+    for dirpath, _, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            total += os.path.getsize(fp)
+    return total
 
 def flex_input(
         in_path: str,
