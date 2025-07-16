@@ -2,7 +2,7 @@ import os
 import re
 from unittest.mock import patch
 
-import igm_churchill_cnvloh.cli as cli
+import igm_churchill_ancestry.cli as cli
 
 
 @patch('os.makedirs')
