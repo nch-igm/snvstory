@@ -35,7 +35,7 @@ def run_ancestry():
     parser = argparse.ArgumentParser(description='Ancestry Prediction v1.0')
     parser.add_argument('--path', dest="path", required=True, type=str, help="<REQUIRED> specify the vcf/multi-sample-vcf s3 or local file path or the path to directory containing the file(s)")
     parser.add_argument('--resource', dest="resource", required=True, type=str, help="<REQUIRED> specify the location of the resource folder")
-    parser.add_argument('--sample_pos', dest="sp", required=False, nargs='+', default='all', help="if the input is in a multi-sample vcf format specify which sample to select designated by position in the MultiSample vcf e.g. 1,2,3 ect or all.\nAlternatively you can specify the name of the sample e.g. mother, father, proband")
+    parser.add_argument('--sample_pos', dest="sp", required=False, nargs='+', default=['all'], help="if the input is in a multi-sample vcf format specify which sample to select designated by position in the MultiSample vcf e.g. 1,2,3 ect or all.\nAlternatively you can specify the name of the sample e.g. mother, father, proband")
     parser.add_argument('--logging', dest='logging', type=str, help="<OPTIONAL> provide the output path for the logging file")
     parser.add_argument('-j', '--vcf_json', required=False, nargs='+', default=None, help="<REQUIRED> provide a json format of the data e.g. 2_238272966_TC:1")
     parser.add_argument('--output-dir', dest='output_dir', type=str, required=True, help="<REQUIRED> provide the dir path")
