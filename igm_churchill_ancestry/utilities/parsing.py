@@ -1,11 +1,11 @@
 import numpy as np
-from igm_churchill_ancestry.pipelines.variables import variables
+from igm_churchill_ancestry.pipelines.variables import EXTENSIONS
 
 
 def parse_vcf(o, gz_file):
     f"""
     A function to read a VCF and store lines with actionable
-    information. Acceptable formats are: {variables.EXTENSIONS}. Assumes
+    information. Acceptable formats are: {EXTENSIONS}. Assumes
     only single sample.
 
     args
@@ -82,7 +82,7 @@ def parse_multisample_vcf_sample(o, gz_file, sample):
 def parse_multisample_vcf(o, gz_file, sample):
     f"""
     A function to read a gVCF and store lines with actionable information.
-    Acceptable formats are {variables.EXTENSIONS}
+    Acceptable formats are {EXTENSIONS}
 
 
     args

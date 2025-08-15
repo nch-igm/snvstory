@@ -1,4 +1,3 @@
-from igm_churchill_ancestry.pipelines.variables import variables
 import gzip
 import numpy as np
 import logging
@@ -6,17 +5,18 @@ import string
 import os
 import re
 import sys
+from igm_churchill_ancestry.pipelines.variables import EXTENSIONS, ModelConfig
 log = logging.getLogger(__name__)
 np.random.seed(0)  # guaranteed to have at least 10000 unique filecodes
 
 
-def check_resources(var):
+def check_resources(var: ModelConfig):
     """
     Each model expects certain auxillary files necessary to complete prediction
     This function checks to see whether those files are accessible based on the generated
     variable class.
     """
-    for x in var.MATRIX_ATT_DIRS + var.MODEL_DIRS:
+    for x in [str(p) for p in var.paths.matrix_att_dirs + var.paths.model_dirs]:
         if os.path.isdir(x) is False:
             print(f"Failed to find the resource directory {x}")
             sys.exit()
@@ -38,7 +38,7 @@ def filter_extension(path):
           or signals that the path is a directory
 
     """
-    path = filter(lambda x: x.endswith(variables.EXTENSIONS), path)
+    path = filter(lambda x: x.endswith(EXTENSIONS), path)
     return list(path)
 
 
@@ -62,12 +62,12 @@ def get_extension(path):
     basename = os.path.basename(path)
 
     # Match the longest valid extension first
-    for ext in sorted(variables.EXTENSIONS, key=len, reverse=True):
+    for ext in sorted(EXTENSIONS, key=len, reverse=True):
         pattern = re.escape(ext) + r'$'
         if re.search(pattern, basename):
             return ext
 
-    log.debug(f"{path} matches no known extension in {variables.EXTENSIONS}. Assuming directory.")
+    log.debug(f"{path} matches no known extension in {EXTENSIONS}. Assuming directory.")
     return 'dir'
 
 
@@ -148,7 +148,7 @@ def is_vcf_multisample(path_input, return_sample_names=False):
     Boolean - True if it is multisample and false if it is not
     sample_names - optionally will return a list of the sample name(s)
     """
-    if path_input.endswith(variables.EXTENSIONS):
+    if path_input.endswith(EXTENSIONS):
         logging.debug("Checking vcf sample composition")
         o, gz_file = get_file_handle(path_input)
         for num, line in enumerate(o):

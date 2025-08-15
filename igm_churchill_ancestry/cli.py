@@ -4,8 +4,9 @@ import logging
 import tempfile
 import argparse
 import concurrent.futures
+from pathlib import Path
 
-from igm_churchill_ancestry.pipelines.variables import variables
+from igm_churchill_ancestry.pipelines.variables import load_variables
 from igm_churchill_ancestry.utilities.flex import flex_input, flex_output, get_dir_size
 from igm_churchill_ancestry.pipelines.ancestry_prediction import run_ancestry_pipeline
 from igm_churchill_ancestry.utilities.utilities import get_extension, filter_extension, is_vcf_multisample, check_resources
@@ -136,7 +137,7 @@ def run_ancestry():
         print(f"Resource folder: {args.resource} does not appear to be local or an s3 input")
         raise RuntimeError
 
-    var = variables(RSRC_DIR)
+    var = load_variables(Path(RSRC_DIR))
     check_resources(var)
 
     if local_vcf_dir:

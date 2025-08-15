@@ -1,5 +1,4 @@
 import sys, os
-from igm_churchill_ancestry.pipelines.variables import variables
 import pandas as pd
 import numpy as np
 import matplotlib

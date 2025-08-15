@@ -1,104 +1,281 @@
-def join_paths(path1, path2):
-    path = path1 + path2
-    return [path]
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Tuple, List
+
+# File extension support
+_ext = ['.g.vcf', '.gvcf', 'vcf']
+EXTENSIONS = tuple(_ext + [f'{x}.gz' for x in _ext])
+
+# Display information for labels
+LABEL_DISPLAY = {
+    'afr': {'abbr': 'afr', 'color': '#B847A3'},
+    'amr': {'abbr': 'amr', 'color': '#FBDF6C'},
+    'asj': {'abbr': 'asj', 'color': '#2EDB7E'},
+    'eas': {'abbr': 'eas', 'color': '#ED592A'},
+    'eur': {'abbr': 'eur', 'color': '#2FA4DC'},
+    'sas': {'abbr': 'sas', 'color': '#DC2E31'},
+    'fin': {'abbr': 'fin', 'color': '#2FA4DC'},
+    'nfe_bgr': {'abbr': 'nfe_bgr', 'color': '#2FA4DC'},
+    'nfe_est': {'abbr': 'nfe_est', 'color': '#2FA4DC'},
+    'nfe_nwe': {'abbr': 'nfe_nwe', 'color': '#2FA4DC'},
+    'nfe_onf': {'abbr': 'nfe_onf', 'color': '#2FA4DC'},
+    'nfe_seu': {'abbr': 'nfe_seu', 'color': '#2FA4DC'},
+    'nfe_swe': {'abbr': 'nfe_swe', 'color': '#2FA4DC'},
+    'eas_jpn': {'abbr': 'eas_jpn', 'color': '#ED592A'},
+    'eas_kor': {'abbr': 'eas_kor', 'color': '#ED592A'},
+    'eas_oea': {'abbr': 'eas_oea', 'color': '#ED592A'},
+    'Puerto Rican in Puerto Rico': {'abbr': 'amr_pri', 'color': '#FBDF6C'},
+    'Colombian in Medellin, Colombia': {'abbr': 'amr_col', 'color': '#FBDF6C'},
+    'Peruvian in Lima, Peru': {'abbr': 'amr_per', 'color': '#FBDF6C'},
+    'Mexican Ancestry in Los Angeles, California': {'abbr': 'amr_mex', 'color': '#FBDF6C'},
+    'African Caribbean in Barbados': {'abbr': 'afr_brb', 'color': '#B847A3'},
+    'Gambian in Western Division, The Gambia': {'abbr': 'afr_gmb', 'color': '#B847A3'},
+    'Esan in Nigeria': {'abbr': 'afr_nga_esan', 'color': '#B847A3'},
+    'Mende in Sierra Leone': {'abbr': 'afr_sle', 'color': '#B847A3'},
+    'Yoruba in Ibadan, Nigeria': {'abbr': 'afr_nga_yoru', 'color': '#B847A3'},
+    'Luhya in Webuye, Kenya': {'abbr': 'afr_ken', 'color': '#B847A3'},
+    'African Ancestry in Southwest US': {'abbr': 'afr_sw_usa', 'color': '#B847A3'},
+    'Southern Han Chinese, China': {'abbr': 'eas_chn_s_han', 'color': '#ED592A'},
+    'Chinese Dai in Xishuangbanna, China': {'abbr': 'eas_chn_dai', 'color': '#ED592A'},
+    'Kinh in Ho Chi Minh City, Vietnam': {'abbr': 'eas_vnm', 'color': '#ED592A'},
+    'Han Chinese in Bejing, China': {'abbr': 'eas_chn_n_han', 'color': '#ED592A'},
+    'Japanese in Tokyo, Japan': {'abbr': 'eas_jpn', 'color': '#ED592A'},
+    'British in England and Scotland': {'abbr': 'eur_gbr', 'color': '#2FA4DC'},
+    'Finnish in Finland': {'abbr': 'eur_fin', 'color': '#2FA4DC'},
+    'Iberian populations in Spain': {'abbr': 'eur_esp', 'color': '#2FA4DC'},
+    'Toscani in Italy': {'abbr': 'eur_ita', 'color': '#2FA4DC'},
+    'Punjabi in Lahore,Pakistan': {'abbr': 'sas_pak', 'color': '#DC2E31'},
+    'Bengali in Bangladesh': {'abbr': 'sas_bgd', 'color': '#DC2E31'},
+    'Sri Lankan Tamil in the UK': {'abbr': 'sas_lka', 'color': '#DC2E31'},
+    'Indian Telugu in the UK': {'abbr': 'sas_se_ind', 'color': '#DC2E31'},
+    'Gujarati Indian in Houston,TX': {'abbr': 'sas_nw_ind', 'color': '#DC2E31'},
+    'WestEurasia': {'abbr': 'weur', 'color': '#2FA4DC'},
+    'Oceania': {'abbr': 'oce', 'color': '#646464'},
+    'America': {'abbr': 'amr', 'color': '#FBDF6C'},
+    'Africa': {'abbr': 'afr', 'color': '#B847A3'},
+    'EastAsia': {'abbr': 'eas', 'color': '#ED592A'},
+    'SouthAsia': {'abbr': 'sas', 'color': '#DC2E31'},
+    'CentralAsiaSiberia': {'abbr': 'cas', 'color': '#FFC1C1'},
+}
+
+# Titles for plots keyed by model identifier
+PLOT_TITLES = {
+    'gnomAD_continental': 'gnomAD_continental',
+    'gnomAD_eur': 'gnomAD_eur',
+    'gnomAD_eas': 'gnomAD_eas',
+    '1kGP_amr': '1KGP_amr',
+    '1kGP_afr': '1KGP_afr',
+    '1kGP_eas': '1KGP_eas',
+    '1kGP_eur': '1KGP_eur',
+    '1kGP_sas': '1KGP_sas',
+    '1kGP_continental': '1KGP_continental',
+    'SGDP_continental': 'SGDP_continental',
+}
 
 
-class variables:
-    # static variables
-    ext = ['.g.vcf', '.gvcf', 'vcf']
-    ext_gz = [f'{x}.gz' for x in ext]
-    EXTENSIONS = tuple(ext + ext_gz)
+@dataclass
+class LabelMappings:
+    """Mappings between numeric class indices and label information."""
 
-    def __init__(self, rsrc_root):
-
-        # model labels
-        self.LABS_CONT = {0: ('afr', 5), 1: ('amr', 1), 2: ('asj', 0), 3: ('eas', 2), 4: ('eur', 3), 5: ('sas', 4)}
-        self.LABS_SUBCONT_EUR = {0: ('fin',0), 1: ('nfe_bgr',1), 2: ('nfe_est',2), 3: ('nfe_nwe',3), 4: ('nfe_onf',4), 5: ('nfe_seu',5), 6: ('nfe_swe',6)}
-        self.LABS_SUBCONT_EAS = {0: ('eas_jpn',0), 1: ('eas_kor',1), 2: ('eas_oea', 2)}
-        self.LABS_GENOMES_1000_AMR = {0: ('Puerto Rican in Puerto Rico', 0), 1: ('Colombian in Medellin, Colombia', 1), 2: ('Peruvian in Lima, Peru',2), 3: ('Mexican Ancestry in Los Angeles, California', 3)}
-        self.LABS_GENOMES_1000_AFR = {0: ('African Caribbean in Barbados', 0), 1: ('Gambian in Western Division, The Gambia', 1), 2: ('Esan in Nigeria', 2), 3: ('Mende in Sierra Leone', 3), 4: ('Yoruba in Ibadan, Nigeria', 4), 5: ('Luhya in Webuye, Kenya', 5), 6: ('African Ancestry in Southwest US', 6)}
-        # self.LABS_GENOMES_1000_EAS = {0: ('Southern Han Chinese, China', 4), 1: ('Chinese Dai in Xishuangbanna, China', 1), 2: ('Kinh in Ho Chi Minh City, Vietnam', 2), 3: ('Han Chinese in Bejing, China', 3), 4: ('Japanese in Tokyo, Japan', 0)}
-        self.LABS_GENOMES_1000_EAS = {0: ('Southern Han Chinese, China', 0), 1: ('Chinese Dai in Xishuangbanna, China', 1), 2: ('Kinh in Ho Chi Minh City, Vietnam', 2), 3: ('Han Chinese in Bejing, China', 3), 4: ('Japanese in Tokyo, Japan', 4)}
-        # self.LABS_GENOMES_1000_EUR = {0: ('British in England and Scotland', 1), 1: ('Finnish in Finland', 0), 2: ('Iberian populations in Spain', 2), 3: ('Toscani in Italy', 3)}
-        self.LABS_GENOMES_1000_EUR = {0: ('British in England and Scotland', 0), 1: ('Finnish in Finland', 1), 2: ('Iberian populations in Spain', 2), 3: ('Toscani in Italy', 3)}
-        self.LABS_GENOMES_1000_SAS = {0: ('Punjabi in Lahore,Pakistan', 0), 1: ('Bengali in Bangladesh', 1), 2: ('Sri Lankan Tamil in the UK', 2), 3: ('Indian Telugu in the UK', 3), 4: ('Gujarati Indian in Houston,TX', 4)}
-        self.LABS_GENOMES_1000_CONTINENTAL = {0: ('eur', 3), 1: ('eas', 2), 2: ('amr',1), 3: ('sas', 4), 4: ('afr', 5)}
-        self.LABS_SGDP = {0: ('Africa', 0), 1: ('America', 1), 2: ('EastAsia', 2), 3: ('Oceania', 3), 4: ('WestEurasia', 4), 5: ('CentralAsiaSiberia', 5), 6: ('SouthAsia', 6)}
-        
-
-        self.ABBR = {'afr' : ('afr', '#B847A3'), 'amr' : ('amr', '#FBDF6C'), 'asj' : ('asj', '#2EDB7E'), 'eas' : ('eas', '#ED592A'), 
-            'eur' : ('eur', '#2FA4DC'), 'sas' : ('sas', '#DC2E31'), 'fin' : ('fin', '#2FA4DC'), 'nfe_bgr' : ('nfe_bgr', '#2FA4DC'), 
-            'nfe_est' : ('nfe_est', '#2FA4DC'), 'nfe_nwe' : ('nfe_nwe', '#2FA4DC'), 'nfe_onf' : ('nfe_onf', '#2FA4DC'), 
-            'nfe_seu' : ('nfe_seu', '#2FA4DC'), 'nfe_swe' : ('nfe_swe', '#2FA4DC'), 'eas_jpn' : ('eas_jpn', '#ED592A'), 
-            'eas_kor' : ('eas_kor', '#ED592A'), 'eas_oea' : ('eas_oea', '#ED592A'), 'Puerto Rican in Puerto Rico' : ('amr_pri', '#FBDF6C'), 
-            'Colombian in Medellin, Colombia' : ('amr_col', '#FBDF6C'), 'Peruvian in Lima, Peru' : ('amr_per', '#FBDF6C'), 
-            'Mexican Ancestry in Los Angeles, California' : ('amr_mex', '#FBDF6C'), 'African Caribbean in Barbados' : ('afr_brb', '#B847A3'), 
-            'Gambian in Western Division, The Gambia' : ('afr_gmb' , '#B847A3'), 'Esan in Nigeria' : ('afr_nga_esan', '#B847A3'), 
-            'Mende in Sierra Leone' : ('afr_sle', '#B847A3'), 'Yoruba in Ibadan, Nigeria' : ('afr_nga_yoru', '#B847A3'), 
-            'Luhya in Webuye, Kenya' : ('afr_ken', '#B847A3'), 'African Ancestry in Southwest US' : ('afr_sw_usa', '#B847A3'), 
-            'Southern Han Chinese, China' : ('eas_chn_s_han', '#ED592A'), 'Chinese Dai in Xishuangbanna, China' : ('eas_chn_dai', '#ED592A'), 
-            'Kinh in Ho Chi Minh City, Vietnam' : ('eas_vnm', '#ED592A'), 'Han Chinese in Bejing, China' : ('eas_chn_n_han', '#ED592A'), 
-            'Japanese in Tokyo, Japan' : ('eas_jpn', '#ED592A'), 'British in England and Scotland' : ('eur_gbr', '#2FA4DC'), 
-            'Finnish in Finland' : ('eur_fin', '#2FA4DC'), 'Iberian populations in Spain' : ('eur_esp', '#2FA4DC'), 
-            'Toscani in Italy' : ('eur_ita', '#2FA4DC'), 'Punjabi in Lahore,Pakistan' : ('sas_pak', '#DC2E31'), 
-            'Bengali in Bangladesh' : ('sas_bgd', '#DC2E31'), 'Sri Lankan Tamil in the UK' : ('sas_lka', '#DC2E31'), 
-            'Indian Telugu in the UK' : ('sas_se_ind', '#DC2E31'), 'Gujarati Indian in Houston,TX' : ('sas_nw_ind', '#DC2E31'), 
-            'eur' : ('eur', '#2FA4DC'), 'eas' : ('eas', '#ED592A'), 'amr' : ('amr', '#FBDF6C'), 'sas' : ('sas', '#DC2E31'), 
-            'afr' : ('afr', '#B847A3'),
-            'WestEurasia' : ('weur', '#2FA4DC'), 'Oceania' : ('oce', '#646464'), 'America' : ('amr', '#FBDF6C'), 'Africa' : ('afr', '#B847A3'),
-            'EastAsia' : ('eas', '#ED592A'), 'SouthAsia' : ('sas', '#DC2E31'), 'CentralAsiaSiberia' : ('cas', '#FFC1C1')}
+    continental: Dict[int, Tuple[str, int]]
+    subcontinental_eur: Dict[int, Tuple[str, int]]
+    subcontinental_eas: Dict[int, Tuple[str, int]]
+    genomes_1000_amr: Dict[int, Tuple[str, int]]
+    genomes_1000_afr: Dict[int, Tuple[str, int]]
+    genomes_1000_eas: Dict[int, Tuple[str, int]]
+    genomes_1000_eur: Dict[int, Tuple[str, int]]
+    genomes_1000_sas: Dict[int, Tuple[str, int]]
+    genomes_1000_continental: Dict[int, Tuple[str, int]]
+    sgdp: Dict[int, Tuple[str, int]]
 
 
-        # static paths
-        self.CONTINENTAL_DIR = f'{rsrc_root}/continental/'
-        self.SUBCONTINENTAL_DIR_EUR = f'{rsrc_root}/subcontinental/eur/'
-        self.SUBCONTINENTAL_DIR_EAS = f'{rsrc_root}/subcontinental/eas/'
-        self.GENOMES_1000_CONTINENTAL_DIR = f'{rsrc_root}/1k_genomes/wes_v2/continental/'
-        self.GENOMES_1000_AMR_DIR = f'{rsrc_root}/1k_genomes/wes_v2/amr/'
-        self.GENOMES_1000_AFR_DIR = f'{rsrc_root}/1k_genomes/wes_v2/afr/'
-        self.GENOMES_1000_EUR_DIR = f'{rsrc_root}/1k_genomes/wes_v2/eur/'
-        self.GENOMES_1000_SAS_DIR = f'{rsrc_root}/1k_genomes/wes_v2/sas/'
-        self.GENOMES_1000_EAS_DIR = f'{rsrc_root}/1k_genomes/wes_v2/eas/'
-        self.SGDP_CONTINENTAL_DIR = f'{rsrc_root}/sgdp/continental/'
-        self.HG38_JSON_CONVERTER = f'{rsrc_root}/genome_ver_converters/hg38tob37/hg38_liftoverAIMs.json'
-        self.WES_b37_JSON_CONVERTER = f'{rsrc_root}/genome_ver_converters/b37tohg38/b37.liftover_to_hg38.1kGP.nygc.json'
-        self.WGS_b37_JSON_CONVERTER = f'{rsrc_root}/genome_ver_converters/b37tohg38/b37.liftover_to_hg38.1kGP.nygc.json'
-        self.SGDP_b37_JSON_CONVERTER = f'{rsrc_root}/genome_ver_converters/b37tohg38/b37_liftover_to_hg38.SGDP.json'
+@dataclass
+class ResourcePaths:
+    """Filesystem paths to resource directories and converters."""
 
-        self.JSON_CONVERTS = {'37': {'WES': {'1kGP': self.WES_b37_JSON_CONVERTER, 'gnomAD': None, 'SGDP': self.SGDP_b37_JSON_CONVERTER}, 'WGS': {'1kGP': self.WGS_b37_JSON_CONVERTER, 'gnomAD': None, 'SGDP': self.SGDP_b37_JSON_CONVERTER}}, '38': {'WES': {'1kGP': None, 'gnomAD': self.HG38_JSON_CONVERTER, 'SGDP': None}, 'WGS': {'1kGP': None, 'gnomAD': self.HG38_JSON_CONVERTER, 'SGDP': None}}}
+    continental_dir: Path
+    subcontinental_dir_eur: Path
+    subcontinental_dir_eas: Path
+    genomes_1000_continental_dir: Path
+    genomes_1000_amr_dir: Path
+    genomes_1000_afr_dir: Path
+    genomes_1000_eur_dir: Path
+    genomes_1000_sas_dir: Path
+    genomes_1000_eas_dir: Path
+    sgdp_continental_dir: Path
+    hg38_json_converter: Path
+    wes_b37_json_converter: Path
+    wgs_b37_json_converter: Path
+    sgdp_b37_json_converter: Path
+    json_converts: Dict[str, Dict[str, Dict[str, Path]]]
+    matrix_att_dirs: List[Path]
+    model_dirs: List[Path]
 
-        self.MATRIX_ATT = '/matrix_attributes/'
-        self.ML_MODELS = '/machine_learning_models/'
 
-        # folder list
-        self.MATRIX_ATT_DIRS = join_paths(self.CONTINENTAL_DIR, self.MATRIX_ATT) + join_paths(self.SUBCONTINENTAL_DIR_EUR, self.MATRIX_ATT) + join_paths(self.SUBCONTINENTAL_DIR_EAS, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_AMR_DIR, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_AFR_DIR, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_EAS_DIR, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_EUR_DIR, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_SAS_DIR, self.MATRIX_ATT) + join_paths(self.GENOMES_1000_CONTINENTAL_DIR, self.MATRIX_ATT) + join_paths(self.SGDP_CONTINENTAL_DIR, self.MATRIX_ATT)
+@dataclass
+class ModelConfig:
+    """Aggregate configuration for ancestry prediction models."""
 
-        self.MODEL_DIRS = join_paths(self.CONTINENTAL_DIR, self.ML_MODELS) + join_paths(self.SUBCONTINENTAL_DIR_EUR, self.ML_MODELS) + join_paths(self.SUBCONTINENTAL_DIR_EAS, self.ML_MODELS) + join_paths(self.GENOMES_1000_AMR_DIR, self.ML_MODELS) + join_paths(self.GENOMES_1000_AFR_DIR, self.ML_MODELS) + join_paths(self.GENOMES_1000_EAS_DIR, self.ML_MODELS) + join_paths(self.GENOMES_1000_EUR_DIR, self.ML_MODELS) + join_paths(self.GENOMES_1000_SAS_DIR, self.ML_MODELS) + join_paths(self.GENOMES_1000_CONTINENTAL_DIR, self.ML_MODELS) + join_paths(self.SGDP_CONTINENTAL_DIR, self.ML_MODELS)
+    labels: LabelMappings
+    paths: ResourcePaths
+    n_classes_continental: int
+    n_classes_continental_nygc: int
+    n_classes_subcontinental_eur: int
+    n_classes_subcontinental_eas: int
+    n_classes_1000_genomes_afr: int
+    n_classes_1000_genomes_amr: int
+    n_classes_1000_genomes_sas: int
+    n_classes_1000_genomes_eur: int
+    n_classes_1000_genomes_eas: int
+    n_classes_sgdp_continental: int
+    labs_converter: Dict[str, Dict[int, Tuple[str, int]]]
+    r_dirs: List[Tuple[str, str, int, str]]
+    axis_loc: Dict[str, int]
+    titles: Dict[str, str]
 
-        # n_class
-        self.N_CLASSES_CONTINENTAL = 6
-        self.N_CLASSES_CONTINENTAL_NYGC = 5
-        self.N_CLASSES_SUBCONTINENTAL_EUR = 7
-        self.N_CLASSES_SUBCONTINENTAL_EAS = 3
-        self.N_CLASSES_1000_GENOMES_AFR = len(self.LABS_GENOMES_1000_AFR)
-        self.N_CLASSES_1000_GENOMES_AMR = len(self.LABS_GENOMES_1000_AMR)
-        self.N_CLASSES_1000_GENOMES_SAS = len(self.LABS_GENOMES_1000_SAS)
-        self.N_CLASSES_1000_GENOMES_EUR = len(self.LABS_GENOMES_1000_EUR)
-        self.N_CLASSES_1000_GENOMES_EAS = len(self.LABS_GENOMES_1000_EAS)
-        self.N_CLASSES_SGDP_CONTINENTAL = 7
-        #self.N_CLASSES_SIM_REGION = 5
 
-        # indicators
-        mode = ['gnomAD_continental', 'gnomAD_eur', 'gnomAD_eas', '1kGP_amr', '1kGP_afr', '1kGP_eas', '1kGP_eur', '1kGP_sas', '1kGP_continental', 'SGDP_continental']
-        label_order = [self.LABS_CONT, self.LABS_SUBCONT_EUR, self.LABS_SUBCONT_EAS, self.LABS_GENOMES_1000_AMR, self.LABS_GENOMES_1000_AFR, self.LABS_GENOMES_1000_EAS, self.LABS_GENOMES_1000_EUR, self.LABS_GENOMES_1000_SAS, self.LABS_GENOMES_1000_CONTINENTAL, self.LABS_SGDP]
-        self.LABS_CONVERTER = dict(zip(mode, label_order))
-        n_classes = [self.N_CLASSES_CONTINENTAL, self.N_CLASSES_SUBCONTINENTAL_EUR, self.N_CLASSES_SUBCONTINENTAL_EAS, self.N_CLASSES_1000_GENOMES_AMR, self.N_CLASSES_1000_GENOMES_AFR, self.N_CLASSES_1000_GENOMES_EAS, self.N_CLASSES_1000_GENOMES_EUR, self.N_CLASSES_1000_GENOMES_SAS, self.N_CLASSES_CONTINENTAL_NYGC, self.N_CLASSES_SGDP_CONTINENTAL]
-        self.R_DIRS = list(zip(self.MATRIX_ATT_DIRS, self.MODEL_DIRS, n_classes, mode))
+def load_variables(resource_root: Path) -> ModelConfig:
+    """Build all variables required for the ancestry pipeline.
 
-        # plotting axis order the plot is 2,5
-        axis_order = [0, 2, 4, 6, 7, 5, 3, 8, 1, 9]
-        self.axis_loc = dict(zip(mode, axis_order))
+    Parameters
+    ----------
+    resource_root : Path
+        Root directory containing model resources.
 
-        # change names to something more descriptive
-        subplt_titles = ['gnomAD_continental', 'gnomAD_eur', 'gnomAD_eas', '1KGP_amr', '1KGP_afr', '1KGP_eas', '1KGP_eur', '1KGP_sas', '1KGP_continental', 'SGDP_continental']
-        self.TITLES = dict(zip(mode, subplt_titles))
+    Returns
+    -------
+    ModelConfig
+        Populated configuration dataclass.
+    """
+
+    labels = LabelMappings(
+        continental={0: ('afr', 5), 1: ('amr', 1), 2: ('asj', 0), 3: ('eas', 2), 4: ('eur', 3), 5: ('sas', 4)},
+        subcontinental_eur={0: ('fin', 0), 1: ('nfe_bgr', 1), 2: ('nfe_est', 2), 3: ('nfe_nwe', 3),
+                            4: ('nfe_onf', 4), 5: ('nfe_seu', 5), 6: ('nfe_swe', 6)},
+        subcontinental_eas={0: ('eas_jpn', 0), 1: ('eas_kor', 1), 2: ('eas_oea', 2)},
+        genomes_1000_amr={0: ('Puerto Rican in Puerto Rico', 0), 1: ('Colombian in Medellin, Colombia', 1),
+                          2: ('Peruvian in Lima, Peru', 2), 3: ('Mexican Ancestry in Los Angeles, California', 3)},
+        genomes_1000_afr={0: ('African Caribbean in Barbados', 0), 1: ('Gambian in Western Division, The Gambia', 1),
+                          2: ('Esan in Nigeria', 2), 3: ('Mende in Sierra Leone', 3),
+                          4: ('Yoruba in Ibadan, Nigeria', 4), 5: ('Luhya in Webuye, Kenya', 5),
+                          6: ('African Ancestry in Southwest US', 6)},
+        genomes_1000_eas={0: ('Southern Han Chinese, China', 0), 1: ('Chinese Dai in Xishuangbanna, China', 1),
+                          2: ('Kinh in Ho Chi Minh City, Vietnam', 2), 3: ('Han Chinese in Bejing, China', 3),
+                          4: ('Japanese in Tokyo, Japan', 4)},
+        genomes_1000_eur={0: ('British in England and Scotland', 0), 1: ('Finnish in Finland', 1),
+                          2: ('Iberian populations in Spain', 2), 3: ('Toscani in Italy', 3)},
+        genomes_1000_sas={0: ('Punjabi in Lahore,Pakistan', 0), 1: ('Bengali in Bangladesh', 1),
+                          2: ('Sri Lankan Tamil in the UK', 2), 3: ('Indian Telugu in the UK', 3),
+                          4: ('Gujarati Indian in Houston,TX', 4)},
+        genomes_1000_continental={0: ('eur', 3), 1: ('eas', 2), 2: ('amr', 1), 3: ('sas', 4), 4: ('afr', 5)},
+        sgdp={0: ('Africa', 0), 1: ('America', 1), 2: ('EastAsia', 2), 3: ('Oceania', 3),
+              4: ('WestEurasia', 4), 5: ('CentralAsiaSiberia', 5), 6: ('SouthAsia', 6)},
+    )
+
+    paths = ResourcePaths(
+        continental_dir=resource_root / 'continental',
+        subcontinental_dir_eur=resource_root / 'subcontinental' / 'eur',
+        subcontinental_dir_eas=resource_root / 'subcontinental' / 'eas',
+        genomes_1000_continental_dir=resource_root / '1k_genomes' / 'wes_v2' / 'continental',
+        genomes_1000_amr_dir=resource_root / '1k_genomes' / 'wes_v2' / 'amr',
+        genomes_1000_afr_dir=resource_root / '1k_genomes' / 'wes_v2' / 'afr',
+        genomes_1000_eur_dir=resource_root / '1k_genomes' / 'wes_v2' / 'eur',
+        genomes_1000_sas_dir=resource_root / '1k_genomes' / 'wes_v2' / 'sas',
+        genomes_1000_eas_dir=resource_root / '1k_genomes' / 'wes_v2' / 'eas',
+        sgdp_continental_dir=resource_root / 'sgdp' / 'continental',
+        hg38_json_converter=resource_root / 'genome_ver_converters' / 'hg38tob37' / 'hg38_liftoverAIMs.json',
+        wes_b37_json_converter=resource_root / 'genome_ver_converters' / 'b37tohg38' / 'b37.liftover_to_hg38.1kGP.nygc.json',
+        wgs_b37_json_converter=resource_root / 'genome_ver_converters' / 'b37tohg38' / 'b37.liftover_to_hg38.1kGP.nygc.json',
+        sgdp_b37_json_converter=resource_root / 'genome_ver_converters' / 'b37tohg38' / 'b37_liftover_to_hg38.SGDP.json',
+        json_converts={},
+        matrix_att_dirs=[],
+        model_dirs=[],
+    )
+
+    paths.json_converts = {
+        '37': {
+            'WES': {'1kGP': paths.wes_b37_json_converter, 'gnomAD': None, 'SGDP': paths.sgdp_b37_json_converter},
+            'WGS': {'1kGP': paths.wgs_b37_json_converter, 'gnomAD': None, 'SGDP': paths.sgdp_b37_json_converter},
+        },
+        '38': {
+            'WES': {'1kGP': None, 'gnomAD': paths.hg38_json_converter, 'SGDP': None},
+            'WGS': {'1kGP': None, 'gnomAD': paths.hg38_json_converter, 'SGDP': None},
+        },
+    }
+
+    matrix_att = 'matrix_attributes'
+    ml_models = 'machine_learning_models'
+
+    sources = [
+        paths.continental_dir,
+        paths.subcontinental_dir_eur,
+        paths.subcontinental_dir_eas,
+        paths.genomes_1000_amr_dir,
+        paths.genomes_1000_afr_dir,
+        paths.genomes_1000_eas_dir,
+        paths.genomes_1000_eur_dir,
+        paths.genomes_1000_sas_dir,
+        paths.genomes_1000_continental_dir,
+        paths.sgdp_continental_dir,
+    ]
+    paths.matrix_att_dirs = [p / matrix_att for p in sources]
+    paths.model_dirs = [p / ml_models for p in sources]
+
+    n_classes_continental = 6
+    n_classes_continental_nygc = 5
+    n_classes_subcontinental_eur = 7
+    n_classes_subcontinental_eas = 3
+    n_classes_1000_genomes_afr = len(labels.genomes_1000_afr)
+    n_classes_1000_genomes_amr = len(labels.genomes_1000_amr)
+    n_classes_1000_genomes_sas = len(labels.genomes_1000_sas)
+    n_classes_1000_genomes_eur = len(labels.genomes_1000_eur)
+    n_classes_1000_genomes_eas = len(labels.genomes_1000_eas)
+    n_classes_sgdp_continental = 7
+
+    mode = [
+        'gnomAD_continental', 'gnomAD_eur', 'gnomAD_eas', '1kGP_amr', '1kGP_afr',
+        '1kGP_eas', '1kGP_eur', '1kGP_sas', '1kGP_continental', 'SGDP_continental'
+    ]
+    label_order = [
+        labels.continental, labels.subcontinental_eur, labels.subcontinental_eas,
+        labels.genomes_1000_amr, labels.genomes_1000_afr, labels.genomes_1000_eas,
+        labels.genomes_1000_eur, labels.genomes_1000_sas,
+        labels.genomes_1000_continental, labels.sgdp
+    ]
+    labs_converter = dict(zip(mode, label_order))
+    n_classes = [
+        n_classes_continental, n_classes_subcontinental_eur, n_classes_subcontinental_eas,
+        n_classes_1000_genomes_amr, n_classes_1000_genomes_afr, n_classes_1000_genomes_eas,
+        n_classes_1000_genomes_eur, n_classes_1000_genomes_sas,
+        n_classes_continental_nygc, n_classes_sgdp_continental
+    ]
+    r_dirs = list(zip(
+        [str(p) for p in paths.matrix_att_dirs],
+        [str(p) for p in paths.model_dirs],
+        n_classes,
+        mode
+    ))
+
+    axis_order = [0, 2, 4, 6, 7, 5, 3, 8, 1, 9]
+    axis_loc = dict(zip(mode, axis_order))
+    titles = {m: PLOT_TITLES[m] for m in mode}
+
+    return ModelConfig(
+        labels=labels,
+        paths=paths,
+        n_classes_continental=n_classes_continental,
+        n_classes_continental_nygc=n_classes_continental_nygc,
+        n_classes_subcontinental_eur=n_classes_subcontinental_eur,
+        n_classes_subcontinental_eas=n_classes_subcontinental_eas,
+        n_classes_1000_genomes_afr=n_classes_1000_genomes_afr,
+        n_classes_1000_genomes_amr=n_classes_1000_genomes_amr,
+        n_classes_1000_genomes_sas=n_classes_1000_genomes_sas,
+        n_classes_1000_genomes_eur=n_classes_1000_genomes_eur,
+        n_classes_1000_genomes_eas=n_classes_1000_genomes_eas,
+        n_classes_sgdp_continental=n_classes_sgdp_continental,
+        labs_converter=labs_converter,
+        r_dirs=r_dirs,
+        axis_loc=axis_loc,
+        titles=titles,
+    )
+

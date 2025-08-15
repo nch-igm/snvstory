@@ -4,6 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from ast import literal_eval
+from igm_churchill_ancestry.pipelines.variables import LABEL_DISPLAY, ModelConfig
 
 
 '''
@@ -16,7 +17,7 @@ color_dict = {'purple':'#B847A3', 'yellow':'#FBDF6C', 'orange':'#ED592A', 'grey'
 
 
 # Normalize the sub continental model predictions using the continental probabilities
-def get_score_normalizers(data, var):
+def get_score_normalizers(data, var: ModelConfig):
     normalize_sub_continent = np.asarray(data['gnomAD_continental'])
     normalize_1kg_continent = np.asarray(data['1kGP_continental'])
     # Normalizing the subcontinent data
@@ -32,7 +33,7 @@ def get_score_normalizers(data, var):
     for c in data.index:
         top_i = np.argsort(data[c])[-2:]
         top_val = np.asarray(data[c])[top_i]
-        top_labels = [var.LABS_CONVERTER[c][x][0] for x in top_i]
+        top_labels = [var.labs_converter[c][x][0] for x in top_i]
         lab_val = (top_labels, top_val.tolist())
         top_hits.append(lab_val)
     return data, top_hits
@@ -51,8 +52,8 @@ def transform_df(p):
 
 
 # Plot all three models in separate donut plots
-def get_values_for_donut_separate(data, model_lab, var, ax):
-    labs = [x[0] for x in list(var.LABS_CONVERTER[model_lab].values())]
+def get_values_for_donut_separate(data, model_lab, var: ModelConfig, ax):
+    labs = [x[0] for x in list(var.labs_converter[model_lab].values())]
     lab_zip = dict(zip(labs, data[model_lab]))
     df = pd.DataFrame(data=lab_zip.values(), columns=[model_lab], index=lab_zip.keys())
     if model_lab == '1kGP_continental':
@@ -108,12 +109,12 @@ def plot_predictions_separate(data, var, sample_name: str, outdir: str):
                 ax = fig.add_subplot(gs[plot_ind//2, 3:])
 
             vals = np.asarray(data.loc[idx])
-            anc_order = np.asarray([x[1] for x in list(var.LABS_CONVERTER[idx].values())])
+            anc_order = np.asarray([x[1] for x in list(var.labs_converter[idx].values())])
             for i, x in enumerate(vals):
                 ax.plot((0, x), (anc_order[i], anc_order[i]), color='grey', linewidth=2, zorder=1)
 
-            labels = [var.ABBR[x[0]][0] for x in list(var.LABS_CONVERTER[idx].values())]
-            colors = [hex2rbg(var.ABBR[x[0]][1]) for x in list(var.LABS_CONVERTER[idx].values())]
+            labels = [LABEL_DISPLAY[x[0]]['abbr'] for x in list(var.labs_converter[idx].values())]
+            colors = [hex2rbg(LABEL_DISPLAY[x[0]]['color']) for x in list(var.labs_converter[idx].values())]
             ax.scatter(vals, anc_order, c=colors, linewidths=0.5, edgecolors='k', s=100, zorder=10)
             shaded_coords, top_v, top_y = shaded_area(vals, anc_order)
             if shaded_coords is not None:
@@ -123,7 +124,7 @@ def plot_predictions_separate(data, var, sample_name: str, outdir: str):
                     
             ax.set_yticks(ticks=anc_order)
             ax.set_yticklabels(labels=labels, rotation=0, fontsize=11)
-            ax.set_title(var.TITLES[idx])
+            ax.set_title(var.titles[idx])
             ax.set_xlim(-0.05, 1.25, auto=True)
 
         # Add donut plots
